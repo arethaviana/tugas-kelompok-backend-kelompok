@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Admin Dashboard - SportBook</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+
+body{
+    background:#f4f6f9;
+}
+
+.sidebar{
+    width:250px;
+    min-height:100vh;
+    background:#0d6efd;
+    position:fixed;
+    left:0;
+    top:0;
+    color:white;
+}
+
+.sidebar h3{
+    padding:20px;
+    text-align:center;
+    font-weight:bold;
+}
+
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:15px 25px;
+    transition:.3s;
+}
+
+.sidebar a:hover{
+    background:rgba(255,255,255,.15);
+}
+
+.content{
+    margin-left:250px;
+    padding:25px;
+}
+
+.card-stat{
+    border:none;
+    border-radius:20px;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+.card-stat h2{
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar"></div>
+
+</div>
+
+<!-- CONTENT -->
+
+<div class="content">
+    <div id="navbar"></div>
+    <!-- NAVBAR -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold">
+                Dashboard Admin
+            </h2>
+
+            <p class="text-muted">
+                Selamat Datang,
+                <span id="namaAdmin"></span>
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- STATISTIK -->
+
+    <div class="row g-4">
+
+        <div class="col-md-3">
+
+            <div class="card card-stat">
+
+                <div class="card-body text-center">
+
+                    <h6>Total Lapangan</h6>
+
+                    <h2 id="totalLapangan">
+                        0
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card card-stat">
+
+                <div class="card-body text-center">
+
+                    <h6>Total Jadwal</h6>
+
+                    <h2 id="totalJadwal">
+                        0
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card card-stat">
+
+                <div class="card-body text-center">
+
+                    <h6>Total Booking</h6>
+
+                    <h2 id="totalBooking">
+                        0
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card card-stat">
+
+                <div class="card-body text-center">
+
+                    <h6>Pending</h6>
+
+                    <h2 id="pendingBooking">
+                        0
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TABEL BOOKING TERBARU -->
+
+    <div class="card mt-5 shadow border-0">
+
+        <div class="card-header bg-white">
+
+            <h5 class="mb-0">
+                Booking Terbaru
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-striped">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Lapangan</th>
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="bookingTable">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const token =
+localStorage.getItem("token");
+
+const nama =
+localStorage.getItem("nama");
+
+const role =
+localStorage.getItem("role");
+
+if(!token){
+
+window.location.href =
+"login.html";
+
+}
+
+if(role !== "admin"){
+
+window.location.href =
+"user-dashboard.html";
+
+}
+
+document.getElementById(
+"namaAdmin"
+).innerText = nama;
+
+
+// TOTAL LAPANGAN
+
+async function getLapangan(){
+
+const res = await fetch(
+"http://localhost:5000/api/lapangan"
+);
+
+const data = await res.json();
+
+document.getElementById(
+"totalLapangan"
+).innerText = data.length;
+
+}
+
+
+// TOTAL JADWAL
+
+async function getJadwal(){
+
+const res = await fetch(
+"http://localhost:5000/api/jadwal"
+);
+
+const data = await res.json();
+
+document.getElementById(
+"totalJadwal"
+).innerText = data.length;
+
+}
+
+
+// BOOKING
+
+async function getBooking(){
+
+const res = await fetch(
+"http://localhost:5000/api/booking",
+{
+headers:{
+Authorization:
+`Bearer ${token}`
+}
+}
+);
+
+const data =
+await res.json();
+
+document.getElementById(
+"totalBooking"
+).innerText = data.length;
+
+let pending =
+data.filter(
+b=>b.status==="Pending"
+);
+
+document.getElementById(
+"pendingBooking"
+).innerText = pending.length;
+
+let html = "";
+
+data.slice(0,5).forEach(item=>{
+
+html += `
+<tr>
+
+<td>${item.id}</td>
+
+<td>${item.nama}</td>
+
+<td>${item.nama_lapangan}</td>
+
+<td>
+<span class="badge bg-warning">
+${item.status}
+</span>
+</td>
+
+</tr>
+`;
+
+});
+
+document.getElementById(
+"bookingTable"
+).innerHTML = html;
+
+}
+
+
+function logout(){
+
+localStorage.clear();
+
+window.location.href =
+"login.html";
+
+}
+
+
+getLapangan();
+getJadwal();
+getBooking();
+
+</script>
+
+<script src="js/global.js"></script>
+<script src="components/adminSidebar.js"></script>
+<script src="components/navbar.js"></script>
+
+<script>
+
+loadAdminSidebar();
+loadNavbar("Dashboard Admin");
+
+</script>
+
+</body>
+</html>
